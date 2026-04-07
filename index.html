@@ -1,4 +1,3 @@
-
 <!DOCTYPE html><html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,19 +6,30 @@
 body { font-family: Arial; padding: 15px; background:#f5f5f5; }
 .card { background:white; padding:12px; border-radius:10px; margin-bottom:12px; }
 input { width:100%; padding:8px; margin:4px 0; }
-button { width:100%; padding:12px; margin-top:8px; border:none; background:#4CAF50; color:white; border-radius:8px; font-size:16px; }
+button { width:100%; padding:10px; margin-top:6px; border:none; background:#4CAF50; color:white; border-radius:8px; font-size:14px; }
+.small-btn { width:auto; padding:6px 10px; margin:4px 0; }
+.section-title { font-weight:bold; margin-top:8px; }
 .winner { border:2px solid gold; }
+.breakdown { font-size:12px; color:#555; margin-top:4px; }
 </style>
 </head>
-<body><h2>🚆 Ticket to Ride Scorer</h2><div id="players"></div><button onclick="addPlayer()">➕ Add Player</button> <button onclick="removePlayer()">➖ Remove Last Player</button>
+<body><h2>🚆 Ticket to Ride Scorer (Europe)</h2><div id="players"></div><button onclick="addPlayer()">➕ Add Player</button> <button onclick="removePlayer()">➖ Remove Last Player</button>
 
 <div class="card">
-<h3>Longest Route Winner</h3>
+<h3>🏆 Longest Route</h3>
 <input id="longest" placeholder="Player name">
 </div><button onclick="calculate()">🧮 Calculate Scores</button>
 
 <h3 id="results"></h3><script>
 let playerCount = 0;
+
+function addObjective(player, type) {
+  const container = document.getElementById(`${type}_container_${player}`);
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.placeholder = type === 'done' ? 'Completed objective' : 'Failed objective';
+  container.appendChild(input);
+}
 
 function addPlayer(name="") {
   playerCount++;
@@ -29,14 +39,25 @@ function addPlayer(name="") {
   div.innerHTML = `
     <h3>Player ${playerCount}</h3>
     <input placeholder="Name" id="name${playerCount}" value="${name}">
-    ${[1,2,3,4,5,6,7].map(i => `<input type="number" placeholder="Objective ${i}" id="obj${playerCount}_${i}">`).join('')}
 
+    <div class="section-title">🎯 Objectives Completed</div>
+    <div id="done_container_${playerCount}"></div>
+    <button class="small-btn" onclick="addObjective(${playerCount}, 'done')">➕ Add</button>
+
+    <div class="section-title">❌ Objectives Failed</div>
+    <div id="fail_container_${playerCount}"></div>
+    <button class="small-btn" onclick="addObjective(${playerCount}, 'fail')">➕ Add</button>
+
+    <div class="section-title">🚧 Routes Built</div>
     <input type="number" placeholder="Length 1" id="r1_${playerCount}">
     <input type="number" placeholder="Length 2" id="r2_${playerCount}">
     <input type="number" placeholder="Length 3" id="r3_${playerCount}">
     <input type="number" placeholder="Length 4" id="r4_${playerCount}">
     <input type="number" placeholder="Length 6" id="r6_${playerCount}">
     <input type="number" placeholder="Length 8" id="r8_${playerCount}">
+
+    <div class="section-title">🏠 Stations Used</div>
+    <input type="number" placeholder="0–3" id="stations_${playerCount}">
   `;
   document.getElementById('players').appendChild(div);
 }
@@ -53,6 +74,13 @@ function routeScore(len, count) {
   return (points[len] || 0) * count;
 }
 
+function sumInputs(containerId) {
+  let total = 0;
+  const inputs = document.getElementById(containerId).querySelectorAll('input');
+  inputs.forEach(i => total += parseInt(i.value) || 0);
+  return total;
+}
+
 function calculate() {
   let scores = [];
   const longest = document.getElementById('longest').value;
@@ -60,10 +88,9 @@ function calculate() {
   for (let i = 1; i <= playerCount; i++) {
     const name = document.getElementById(`name${i}`).value || `Player ${i}`;
 
-    let objTotal = 0;
-    for (let j = 1; j <= 7; j++) {
-      objTotal += parseInt(document.getElementById(`obj${i}_${j}`).value) || 0;
-    }
+    let done = sumInputs(`done_container_${i}`);
+    let failed = sumInputs(`fail_container_${i}`);
+    let objectives = done - failed;
 
     const r1 = parseInt(document.getElementById(`r1_${i}`).value) || 0;
     const r2 = parseInt(document.getElementById(`r2_${i}`).value) || 0;
@@ -76,12 +103,16 @@ function calculate() {
 
     let bonus = (name === longest) ? 10 : 0;
 
-    let total = objTotal + routeTotal + bonus;
+    let used = parseInt(document.getElementById(`stations_${i}`).value) || 0;
+    if (used > 3) used = 3;
+    let unused = 3 - used;
+    let stationBonus = unused * 4;
 
-    scores.push({name,total,id:i});
+    let total = objectives + routeTotal + bonus + stationBonus;
+
+    scores.push({name,total,id:i,objectives,routeTotal,bonus,stationBonus});
   }
 
-  // find winner
   let max = Math.max(...scores.map(s => s.total));
 
   let results = '';
@@ -90,16 +121,18 @@ function calculate() {
     let playerDiv = document.getElementById(`player${s.id}`);
     playerDiv.classList.toggle('winner', isWinner);
 
-    results += `${isWinner ? '🏆 ' : ''}${s.name}: ${s.total} pts<br>`;
+    results += `${isWinner ? '🏆 ' : ''}${s.name}: ${s.total} pts`;
+    results += `<div class="breakdown">`;
+    results += `Objectives: ${s.objectives} | Routes: ${s.routeTotal} | Longest: ${s.bonus} | Stations: ${s.stationBonus}`;
+    results += `</div>`;
+    results += `<br>`;
   });
 
   document.getElementById('results').innerHTML = results;
 
-  // save names
   localStorage.setItem('players', JSON.stringify(scores.map(s => s.name)));
 }
 
-// load saved names
 window.onload = () => {
   const saved = JSON.parse(localStorage.getItem('players') || '[]');
   if (saved.length) {
