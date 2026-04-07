@@ -1,7 +1,7 @@
 <!DOCTYPE html><html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TTR Scorer</title>
+<title>Contatore Ticket to Ride</title>
 <style>
 body { font-family: Arial; padding: 15px; background:#f5f5f5; }
 .card { background:white; padding:12px; border-radius:10px; margin-bottom:12px; }
@@ -13,12 +13,12 @@ button { width:100%; padding:10px; margin-top:6px; border:none; background:#4CAF
 .breakdown { font-size:12px; color:#555; margin-top:4px; }
 </style>
 </head>
-<body><h2>🚆 Ticket to Ride Scorer (Europe)</h2><div id="players"></div><button onclick="addPlayer()">➕ Add Player</button> <button onclick="removePlayer()">➖ Remove Last Player</button>
+<body><h2>🚆 Contatore Ticket to Ride (Europa)</h2><div id="players"></div><button onclick="addPlayer()">➕ Aggiungi Giocatore</button> <button onclick="removePlayer()">➖ Rimuovi Ultimo Giocatore</button>
 
 <div class="card">
-<h3>🏆 Longest Route</h3>
-<input id="longest" placeholder="Player name">
-</div><button onclick="calculate()">🧮 Calculate Scores</button>
+<h3>🏆 Percorso Più Lungo</h3>
+<input id="longest" placeholder="Nome giocatore">
+</div><button onclick="calculate()">🧮 Calcola Punteggi</button>
 
 <h3 id="results"></h3><script>
 let playerCount = 0;
@@ -27,7 +27,7 @@ function addObjective(player, type) {
   const container = document.getElementById(`${type}_container_${player}`);
   const input = document.createElement('input');
   input.type = 'number';
-  input.placeholder = type === 'done' ? 'Completed objective' : 'Failed objective';
+  input.placeholder = type === 'done' ? 'Obiettivo completato' : 'Obiettivo non completato';
   container.appendChild(input);
 }
 
@@ -37,26 +37,26 @@ function addPlayer(name="") {
   div.className = 'card';
   div.id = `player${playerCount}`;
   div.innerHTML = `
-    <h3>Player ${playerCount}</h3>
-    <input placeholder="Name" id="name${playerCount}" value="${name}">
+    <h3>Giocatore ${playerCount}</h3>
+    <input placeholder="Nome" id="name${playerCount}" value="${name}">
 
-    <div class="section-title">🎯 Objectives Completed</div>
+    <div class="section-title">🎯 Obiettivi Completati</div>
     <div id="done_container_${playerCount}"></div>
-    <button class="small-btn" onclick="addObjective(${playerCount}, 'done')">➕ Add</button>
+    <button class="small-btn" onclick="addObjective(${playerCount}, 'done')">➕ Aggiungi</button>
 
-    <div class="section-title">❌ Objectives Failed</div>
+    <div class="section-title">❌ Obiettivi Non Completati</div>
     <div id="fail_container_${playerCount}"></div>
-    <button class="small-btn" onclick="addObjective(${playerCount}, 'fail')">➕ Add</button>
+    <button class="small-btn" onclick="addObjective(${playerCount}, 'fail')">➕ Aggiungi</button>
 
-    <div class="section-title">🚧 Routes Built</div>
-    <input type="number" placeholder="Length 1" id="r1_${playerCount}">
-    <input type="number" placeholder="Length 2" id="r2_${playerCount}">
-    <input type="number" placeholder="Length 3" id="r3_${playerCount}">
-    <input type="number" placeholder="Length 4" id="r4_${playerCount}">
-    <input type="number" placeholder="Length 6" id="r6_${playerCount}">
-    <input type="number" placeholder="Length 8" id="r8_${playerCount}">
+    <div class="section-title">🚧 Tratte Costruite</div>
+    <input type="number" placeholder="Lunghezza 1" id="r1_${playerCount}">
+    <input type="number" placeholder="Lunghezza 2" id="r2_${playerCount}">
+    <input type="number" placeholder="Lunghezza 3" id="r3_${playerCount}">
+    <input type="number" placeholder="Lunghezza 4" id="r4_${playerCount}">
+    <input type="number" placeholder="Lunghezza 6" id="r6_${playerCount}">
+    <input type="number" placeholder="Lunghezza 8" id="r8_${playerCount}">
 
-    <div class="section-title">🏠 Stations Used</div>
+    <div class="section-title">🏠 Stazioni Usate</div>
     <input type="number" placeholder="0–3" id="stations_${playerCount}">
   `;
   document.getElementById('players').appendChild(div);
@@ -86,7 +86,7 @@ function calculate() {
   const longest = document.getElementById('longest').value;
 
   for (let i = 1; i <= playerCount; i++) {
-    const name = document.getElementById(`name${i}`).value || `Player ${i}`;
+    const name = document.getElementById(`name${i}`).value || `Giocatore ${i}`;
 
     let done = sumInputs(`done_container_${i}`);
     let failed = sumInputs(`fail_container_${i}`);
@@ -121,9 +121,9 @@ function calculate() {
     let playerDiv = document.getElementById(`player${s.id}`);
     playerDiv.classList.toggle('winner', isWinner);
 
-    results += `${isWinner ? '🏆 ' : ''}${s.name}: ${s.total} pts`;
+    results += `${isWinner ? '🏆 ' : ''}${s.name}: ${s.total} punti`;
     results += `<div class="breakdown">`;
-    results += `Objectives: ${s.objectives} | Routes: ${s.routeTotal} | Longest: ${s.bonus} | Stations: ${s.stationBonus}`;
+    results += `Obiettivi: ${s.objectives} | Tratte: ${s.routeTotal} | Percorso lungo: ${s.bonus} | Stazioni: ${s.stationBonus}`;
     results += `</div>`;
     results += `<br>`;
   });
